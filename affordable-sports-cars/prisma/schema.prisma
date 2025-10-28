@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Brand {
+  brand_id Int    @id @default(autoincrement())
+  name     String @unique
+  models   Model[]
+}
+
+model Model {
+  model_id   Int    @id @default(autoincrement())
+  brand_id   Int
+  brand      Brand  @relation(fields: [brand_id], references: [brand_id])
+  name       String
+  body_style String?
+  year       Int
+  trims      Trim[]
+  @@index([brand_id, year])
+}
+
+model Trim {
+  trim_id       Int      @id @default(autoincrement())
+  model_id      Int
+  model         Model    @relation(fields: [model_id], references: [model_id])
+  name          String
+  msrp          Int      // cents
+  horsepower    Int
+  torque        Int?
+  zero_to_sixty Decimal? // seconds
+  prices        Price[]
+  @@index([msrp])
+  @@index([horsepower])
+}
+
+model Price {
+  price_id    Int      @id @default(autoincrement())
+  trim_id     Int
+  trim        Trim     @relation(fields: [trim_id], references: [trim_id])
+  region      String?
+  price       Int      // cents
+  observed_at DateTime @db.Timestamptz
+  @@index([trim_id, observed_at(sort: Desc)])
+}
+
+model Dealer {
+  dealer_id Int    @id @default(autoincrement())
+  name      String
+  city      String?
+  state     String?
+  lat       Float?
+  lon       Float?
+}
