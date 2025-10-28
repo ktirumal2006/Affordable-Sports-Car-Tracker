@@ -10,6 +10,8 @@
     "db:validate": "prisma validate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
+    "postinstall": "prisma generate",
+    "prisma:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "ingest": "tsx scripts/ingest.ts",

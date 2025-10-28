@@ -1,12 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/ingest?stage=catalog",
-      "schedule": "0 8 * * 0"
-    },
-    {
       "path": "/api/ingest?stage=listings",
-      "schedule": "0 */8 * * *"
+      "schedule": "0 8 * * *"
     }
   ]
 }
