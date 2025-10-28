@@ -7,11 +7,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:seed": "node prisma/seed.js"
+    "db:validate": "prisma validate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts",
+    "ingest": "tsx scripts/ingest.ts",
+    "fetch-images": "tsx scripts/fetchCarImages.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
     "@tanstack/react-query": "^5.90.5",
+    "dotenv": "^17.2.3",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",

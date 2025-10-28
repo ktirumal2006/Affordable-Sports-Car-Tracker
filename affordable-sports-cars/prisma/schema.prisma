@@ -7,14 +7,59 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Car {
-  id         String   @id @default(cuid())
-  make       String
-  model      String
-  year       Int
-  priceUSD   Int
-  horsepower Int?
-  zeroTo60   Float?
-  imageUrl   String?
-  listedAt   DateTime @default(now())
+model Make {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  models Model[]
+}
+
+model Model {
+  id     Int    @id @default(autoincrement())
+  name   String
+  make   Make   @relation(fields: [makeId], references: [id])
+  makeId Int
+  trims  Trim[]
+
+  @@unique([name, makeId])
+}
+
+model Trim {
+  id          Int       @id @default(autoincrement())
+  year        Int
+  name        String
+  body        String?
+  engine      String?
+  horsepower  Int?
+  torque      Int?
+  zeroToSixty Decimal?  @db.Decimal(4, 2)
+  msrp        Int? // if you can source it reliably; else null
+  mpgCity     Int?
+  mpgHwy      Int?
+  imageUrl    String? // car image URL from FuelEconomy or Unsplash
+  model       Model     @relation(fields: [modelId], references: [id])
+  modelId     Int
+  listings    Listing[]
+
+  @@unique([year, name, modelId])
+}
+
+model Listing {
+  id        String    @id // use marketplace id
+  source    String // 'ebay'
+  title     String
+  price     Int
+  url       String
+  image     String?
+  location  String?
+  postedAt  DateTime?
+  trimId    Int? // link via fuzzy match → then backfill once confident
+  trim      Trim?     @relation(fields: [trimId], references: [id])
+  createdAt DateTime  @default(now())
+}
+
+model SourceIngest {
+  id        Int       @id @default(autoincrement())
+  source    String
+  lastRunAt DateTime?
+  notes     String?
 }

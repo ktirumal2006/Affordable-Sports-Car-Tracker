@@ -1,21 +1,197 @@
 import { PrismaClient } from "@prisma/client";
+
 const prisma = new PrismaClient();
 
 async function main() {
-  const cars = [
-    { make:"Porsche", model:"718 Cayman", year:2021, priceUSD:76900, horsepower:300, zeroTo60:4.9, imageUrl:"https://images.unsplash.com/photo-1503376780353-7e6692767b70" },
-    { make:"Chevrolet", model:"Corvette C8", year:2022, priceUSD:69995, horsepower:495, zeroTo60:2.9, imageUrl:"https://images.unsplash.com/photo-1525609004556-c46c7d6cf023" },
-    { make:"Toyota", model:"GR Supra", year:2021, priceUSD:54990, horsepower:382, zeroTo60:3.9, imageUrl:"https://images.unsplash.com/photo-1525609004556-c46c7d6cf023" },
-    { make:"BMW", model:"M2", year:2023, priceUSD:62900, horsepower:453, zeroTo60:3.9, imageUrl:"https://images.unsplash.com/photo-1549924231-f129b911e442" },
-    { make:"Audi", model:"RS3", year:2022, priceUSD:60900, horsepower:401, zeroTo60:3.6, imageUrl:"https://images.unsplash.com/photo-1549924231-f129b911e442" },
-    { make:"Nissan", model:"Z", year:2023, priceUSD:42995, horsepower:400, zeroTo60:4.3, imageUrl:"https://images.unsplash.com/photo-1517677208171-0bc6725a3e60" },
-    { make:"Ford", model:"Mustang GT", year:2021, priceUSD:38990, horsepower:450, zeroTo60:4.2, imageUrl:"https://images.unsplash.com/photo-1483721310020-03333e577078" },
-    { make:"Jaguar", model:"F-Type", year:2020, priceUSD:78900, horsepower:444, zeroTo60:4.4, imageUrl:"https://images.unsplash.com/photo-1542362567-b07e54358753" },
-    { make:"Porsche", model:"911 Carrera (997)", year:2008, priceUSD:89900, horsepower:345, zeroTo60:4.7, imageUrl:"https://images.unsplash.com/photo-1511910849309-0dffb8785146" },
-    { make:"Audi", model:"TTS", year:2020, priceUSD:55900, horsepower:288, zeroTo60:4.4, imageUrl:"https://images.unsplash.com/photo-1533473359331-0135ef1b58bf" },
-    { make:"BMW", model:"M4 (F82)", year:2018, priceUSD:57900, horsepower:425, zeroTo60:4.1, imageUrl:"https://images.unsplash.com/photo-1511396275276-5a93613be8c3" },
-    { make:"Porsche", model:"Cayman (981)", year:2014, priceUSD:48900, horsepower:275, zeroTo60:5.4, imageUrl:"https://images.unsplash.com/photo-1511910849309-0dffb8785146" }
-  ];
-  for (const c of cars) await prisma.car.upsert({ where:{ id: `${c.make}-${c.model}-${c.year}`.toLowerCase() }, update:{}, create:{...c} as any });
+  console.log("🌱 Seeding database with sports car examples...");
+
+  // Create makes
+  const porsche = await prisma.make.upsert({
+    where: { name: "Porsche" },
+    update: {},
+    create: { name: "Porsche" },
+  });
+
+  const toyota = await prisma.make.upsert({
+    where: { name: "Toyota" },
+    update: {},
+    create: { name: "Toyota" },
+  });
+
+  const bmw = await prisma.make.upsert({
+    where: { name: "BMW" },
+    update: {},
+    create: { name: "BMW" },
+  });
+
+  const mazda = await prisma.make.upsert({
+    where: { name: "Mazda" },
+    update: {},
+    create: { name: "Mazda" },
+  });
+
+  // Create models
+  const caymanModel = await prisma.model.upsert({
+    where: { 
+      name_makeId: {
+        name: "718 Cayman",
+        makeId: porsche.id,
+      }
+    },
+    update: {},
+    create: {
+      name: "718 Cayman",
+      makeId: porsche.id,
+    },
+  });
+
+  const supraModel = await prisma.model.upsert({
+    where: { 
+      name_makeId: {
+        name: "GR Supra",
+        makeId: toyota.id,
+      }
+    },
+    update: {},
+    create: {
+      name: "GR Supra",
+      makeId: toyota.id,
+    },
+  });
+
+  const m2Model = await prisma.model.upsert({
+    where: { 
+      name_makeId: {
+        name: "M2",
+        makeId: bmw.id,
+      }
+    },
+    update: {},
+    create: {
+      name: "M2",
+      makeId: bmw.id,
+    },
+  });
+
+  const miataModel = await prisma.model.upsert({
+    where: { 
+      name_makeId: {
+        name: "MX-5 Miata",
+        makeId: mazda.id,
+      }
+    },
+    update: {},
+    create: {
+      name: "MX-5 Miata",
+      makeId: mazda.id,
+    },
+  });
+
+  // Create trims with detailed specs
+  const caymanTrim = await prisma.trim.upsert({
+    where: {
+      year_name_modelId: {
+        year: 2021,
+        name: "Base",
+        modelId: caymanModel.id,
+      }
+    },
+    update: {},
+    create: {
+      year: 2021,
+      name: "Base",
+      body: "Coupe",
+      engine: "4 cyl Turbo",
+      horsepower: 300,
+      torque: 280,
+      zeroToSixty: 4.9,
+      mpgCity: 20,
+      mpgHwy: 27,
+      modelId: caymanModel.id,
+    },
+  });
+
+  const supraTrim = await prisma.trim.upsert({
+    where: {
+      year_name_modelId: {
+        year: 2021,
+        name: "3.0 Premium",
+        modelId: supraModel.id,
+      }
+    },
+    update: {},
+    create: {
+      year: 2021,
+      name: "3.0 Premium",
+      body: "Coupe",
+      engine: "6 cyl Turbo",
+      horsepower: 382,
+      torque: 368,
+      zeroToSixty: 3.9,
+      mpgCity: 22,
+      mpgHwy: 30,
+      modelId: supraModel.id,
+    },
+  });
+
+  const m2Trim = await prisma.trim.upsert({
+    where: {
+      year_name_modelId: {
+        year: 2023,
+        name: "Competition",
+        modelId: m2Model.id,
+      }
+    },
+    update: {},
+    create: {
+      year: 2023,
+      name: "Competition",
+      body: "Coupe",
+      engine: "6 cyl Turbo",
+      horsepower: 453,
+      torque: 406,
+      zeroToSixty: 3.9,
+      mpgCity: 19,
+      mpgHwy: 26,
+      modelId: m2Model.id,
+    },
+  });
+
+  const miataTrim = await prisma.trim.upsert({
+    where: {
+      year_name_modelId: {
+        year: 2022,
+        name: "Club",
+        modelId: miataModel.id,
+      }
+    },
+    update: {},
+    create: {
+      year: 2022,
+      name: "Club",
+      body: "Convertible",
+      engine: "4 cyl",
+      horsepower: 181,
+      torque: 151,
+      zeroToSixty: 5.7,
+      mpgCity: 26,
+      mpgHwy: 35,
+      modelId: miataModel.id,
+    },
+  });
+
+  console.log("✅ Seeded database with sports car examples:");
+  console.log(`- ${porsche.name} ${caymanModel.name} ${caymanTrim.year} ${caymanTrim.name}`);
+  console.log(`- ${toyota.name} ${supraModel.name} ${supraTrim.year} ${supraTrim.name}`);
+  console.log(`- ${bmw.name} ${m2Model.name} ${m2Trim.year} ${m2Trim.name}`);
+  console.log(`- ${mazda.name} ${miataModel.name} ${miataTrim.year} ${miataTrim.name}`);
 }
-main().finally(()=>prisma.$disconnect());
+
+main()
+  .catch((e) => {
+    console.error("❌ Seed failed:", e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
