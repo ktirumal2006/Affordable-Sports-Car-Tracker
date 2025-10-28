@@ -1,26 +1,44 @@
-// app/api/cars/route.ts
-import { prisma } from "@/lib/db";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
-export async function GET() {
-  const trims = await prisma.trim.findMany({
-    take: 10,
-    include: {
-      model: { include: { brand: true } },
-      prices: { take: 1, orderBy: { observed_at: "desc" } },
-    },
-    orderBy: { msrp: "asc" },
-  });
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-  const data = trims.map(t => ({
-    trim_id: t.trim_id,
-    brand: t.model.brand.name,
-    model: t.model.name,
-    year: t.model.year,
-    name: t.name,
-    msrp_cents: t.msrp,
-    horsepower: t.horsepower,
-    latest_price_cents: t.prices[0]?.price ?? null,
-  }));
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
 
-  return Response.json({ count: data.length, trims: data });
+  const page = Number(searchParams.get("page") ?? 1);
+  const perPage = Math.min(Number(searchParams.get("perPage") ?? 12), 50);
+  const maxPrice = Number(searchParams.get("maxPrice") ?? 200000);
+  const make = (searchParams.get("make") ?? "").trim();
+  const q = (searchParams.get("q") ?? "").trim();
+
+  // 👇 Key fixes: explicit type + QueryMode enum
+  const where: Prisma.CarWhereInput = {
+    priceUSD: { lte: maxPrice },
+    ...(make
+      ? { make: { contains: make, mode: "insensitive" } }
+      : {}),
+    ...(q
+      ? {
+          OR: [
+            { make:  { contains: q, mode: "insensitive" } },
+            { model: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
+
+  const [data, total] = await Promise.all([
+    prisma.car.findMany({
+      where,
+      orderBy: [{ priceUSD: "asc" }, { listedAt: "desc" }],
+      skip: (page - 1) * perPage,
+      take: perPage,
+    }),
+    prisma.car.count({ where }),
+  ]);
+
+  return NextResponse.json({ data, page, perPage, total });
 }

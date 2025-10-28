@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+// prisma/seed.js (CommonJS for Windows friendliness)
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
@@ -16,6 +17,11 @@ async function main() {
     { make:"BMW", model:"M4 (F82)", year:2018, priceUSD:57900, horsepower:425, zeroTo60:4.1, imageUrl:"https://images.unsplash.com/photo-1511396275276-5a93613be8c3" },
     { make:"Porsche", model:"Cayman (981)", year:2014, priceUSD:48900, horsepower:275, zeroTo60:5.4, imageUrl:"https://images.unsplash.com/photo-1511910849309-0dffb8785146" }
   ];
-  for (const c of cars) await prisma.car.upsert({ where:{ id: `${c.make}-${c.model}-${c.year}`.toLowerCase() }, update:{}, create:{...c} as any });
+
+  // relies on @@unique([make, model, year]); duplicates will be skipped
+  await prisma.car.createMany({ data: cars, skipDuplicates: true });
 }
-main().finally(()=>prisma.$disconnect());
+
+main()
+  .then(async () => { await prisma.$disconnect(); })
+  .catch(async (e) => { console.error(e); await prisma.$disconnect(); process.exit(1); });

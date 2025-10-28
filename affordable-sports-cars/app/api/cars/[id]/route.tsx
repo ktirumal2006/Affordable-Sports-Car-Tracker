@@ -1,15 +1,12 @@
-// app/api/cars/[id]/route.ts
-import { prisma } from "@/lib/db";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
-  const id = Number(params.id);
-  const trim = await prisma.trim.findUnique({
-    where: { trim_id: id },
-    include: {
-      model: { include: { brand: true } },
-      prices: { orderBy: { observed_at: "desc" }, take: 10 },
-    },
-  });
-  if (!trim) return new Response("Not found", { status: 404 });
-  return Response.json(trim);
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const car = await prisma.car.findUnique({ where: { id } });
+  if (!car) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json(car);
 }
